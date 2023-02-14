@@ -1,0 +1,51 @@
+[
+  {
+    "objectID": "core.html",
+    "href": "core.html",
+    "title": "core",
+    "section": "",
+    "text": "source\n\nfoo\n\n foo ()"
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "ytpull",
+    "section": "",
+    "text": "This file will become your README and also the index of your documentation."
+  },
+  {
+    "objectID": "index.html#install",
+    "href": "index.html#install",
+    "title": "ytpull",
+    "section": "Install",
+    "text": "Install\npip install ytpull"
+  },
+  {
+    "objectID": "index.html#how-to-use",
+    "href": "index.html#how-to-use",
+    "title": "ytpull",
+    "section": "How to use",
+    "text": "How to use\nFill me in please! Don’t forget code examples:\n\n1+1\n\n2"
+  },
+  {
+    "objectID": "pull_n_regex_youtube_comments.html",
+    "href": "pull_n_regex_youtube_comments.html",
+    "title": "prime_comments_pull",
+    "section": "",
+    "text": "#Keys\nAPI_KEY= API_KEY\n\nCHANNEL_ID=  'UC2IE2CK5Cw_26wVv3hPbAgQ' # My Channel\n# CHANNEL_ID='UCY8mzqqGwl5_bTpBY9qLMAA'# Andreas Kretz  UCY8mzqqGwl5_bTpBY9qLMAA    \n# CHANNEL_ID='UCW2E1sGBVde5WMMxEh5CW4w' #sqlbelle   \n# CHANNEL_ID='UCFVHt6gpzRxx8BsdSSYDjVQ' #becoming a data scientist\n# CHANNEL_ID='UCKCCWhzBKhkw5dOA_fSV87A' # go figure\n# CHANNEL_ID='UC8ENHE5xdFSwx71u3fDH5Xw' #  the primegean\n# CHANNEL_ID='UC2UXDak6o7rBm23k3Vv5dww' # tina huang\n# CHANNEL_ID='UCAuUUnT6oDeKwE6v1NGQxug' # TED\n# CHANNEL_ID='UCWF8SqJVNlx-ctXbLswcTcA' # FoundMyFitness\n\n\n# CHANNEL_ID='UCCXojfo44Qhwdg3zmOWIJ7A' #Decent Espresso Machines\n# CHANNEL_ID='UCiolFxnJSOPMmV1mh9EYyIQ' # Spromethius\n\n\n# CHANNEL_NAME = 'Spromethethius' #Actual channel title\n# channel_name = 'the_real_spromethius'\n\n# # CHANNEL_ID=  'UC2IE2CK5Cw_26wVv3hPbAgQ' # My Channel\nCHANNEL_NAME = 'Daves Channel' #Actual channel title\nchannel_name = 'daves_channel'\n\nchannel_name2 = channel_name\n\n\n## stratascratch vid I like\n# VIDEO_ID ='fklHBWow8vE'"
+  },
+  {
+    "objectID": "pull_n_regex_youtube_comments.html#get-videos-informations",
+    "href": "pull_n_regex_youtube_comments.html#get-videos-informations",
+    "title": "prime_comments_pull",
+    "section": "Get Videos Informations",
+    "text": "Get Videos Informations\n\ndef get_video_details(vid_id):\n    #collecting view, like, dislike, comment counts\n        url_video_stats = \"https://www.googleapis.com/youtube/v3/videos?part=snippet%2CcontentDetails%2Cstatistics&id=\"+vid_id+\"&part=statistics&key=\"+API_KEY\n        response_video_stats = requests.get(url_video_stats).json()\n        \n        vid_deets = response_video_stats\n\n        return vid_deets\n\n\n\ndef get_videos(df,pageToken):\n    #make api call\n    \n    while 1:\n        url = \"https://www.googleapis.com/youtube/v3/search?key=\"+API_KEY+\"&channelId=\"+CHANNEL_ID+\"&part=snippet,id&order=date&maxResults=10000&\"+pageToken\n        response = requests.get(url).json()\n        time.sleep(.25)\n\n\n        ### statascratch example OG\n        for video in response['items'][:]:\n            if video['id']['kind'] == 'youtube#video': \n\n                vid_id = video['id']['videoId']\n                vid_channel_id = video['snippet']['channelId']\n                vid_deets = get_video_details(vid_id)\n                vid_response = video\n\n                df = df.append({'vid_id':vid_id,'vid_channel_id':vid_channel_id, 'vid_deets':vid_deets,'vid_response':vid_response},\n                              ignore_index=True)\n        try:\n            if response['nextPageToken'] != None: #if none, it means it reached the last page and break out of it\n#                 pageToken = \"pageToken=\" + response['nextPageToken']\n                pageToken = \"pageToken=\" + response['nextPageToken']\n\n        except:\n            pageToken = 'no more pages'\n            break\n                           \n            \n    return df,vid_response, pageToken"
+  },
+  {
+    "objectID": "pull_n_regex_youtube_comments.html#regex-the-comments-out",
+    "href": "pull_n_regex_youtube_comments.html#regex-the-comments-out",
+    "title": "prime_comments_pull",
+    "section": "Regex the comments out:",
+    "text": "Regex the comments out:\n\ndef regex_comments_and_authorIds(vid_comment_csv_name):    \n    \n#     df = pd.read_csv(vid_comment_csv_name,low_memory=False)\n    df = df4\n    df = df.loc[~df.tcresponse.isna()]; df.reset_index(inplace=True,drop=True)\n\n    df.tcresponse= df.tcresponse.astype(str) \n\n    df['comment'] = df.tcresponse.str.replace(r\"(.*?[\\'\\\"]textDisplay[//]?[\\'\\\"]: [\\'\\\"](.*?)[\\'\\\"],.*)\",r\"\\2\", regex=True)\n\n    df['authorChannelId'] = df.tcresponse.str.replace(r\"(.*?[\\'\\\"]authorChannelId\\': {\\'value[//]?[\\'\\\"]: [\\'\\\"](.*?)[\\'\\\"]},.*)\",r\"\\2\", regex=True)\n\n\n    ######  #newly added untested\n\n    df['authorDisplayName'] = df.tcresponse.str.replace(r\"(.*?[\\'\\\"]authorDisplayName[\\'\\\"]: [\\'\\\"](.*?)[\\'\\\"],.*)\",r\"\\2\", regex=True)    \n\n    ######\n    \n    \n    # create column for each unique comment id\n    df['com_id'] = df.tcomment_id\n\n    #combine reply_id and tcomment_id\n    df.loc[df.com_id.isna(),'com_id'] = df.loc[df.com_id.isna()].reply_id\n    \n    comment_count = len(df) \n    comment_csv_name = f'{channel_name2}_{CHANNEL_ID}_youtube_comments_only_{comment_count}rows.csv'\n    df.to_csv(comment_csv_name,index=False)\n    print(f'Saved: {channel_name2}_{CHANNEL_ID}_youtube_comments_only_{comment_count}rows.csv')\n    return df\ndf = regex_comments_and_authorIds(df4); df.tail(3)\n\nSaved: daves_channel_UC2IE2CK5Cw_26wVv3hPbAgQ_youtube_comments_only_19rows.csv\n\n\n/opt/anaconda3/lib/python3.7/site-packages/pandas/core/generic.py:5516: SettingWithCopyWarning: \nA value is trying to be set on a copy of a slice from a DataFrame.\nTry using .loc[row_indexer,col_indexer] = value instead\n\nSee the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy\n  self[name] = value\n/opt/anaconda3/lib/python3.7/site-packages/ipykernel_launcher.py:9: SettingWithCopyWarning: \nA value is trying to be set on a copy of a slice from a DataFrame.\nTry using .loc[row_indexer,col_indexer] = value instead\n\nSee the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy\n  if __name__ == '__main__':\n/opt/anaconda3/lib/python3.7/site-packages/ipykernel_launcher.py:11: SettingWithCopyWarning: \nA value is trying to be set on a copy of a slice from a DataFrame.\nTry using .loc[row_indexer,col_indexer] = value instead\n\nSee the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy\n  # This is added back by InteractiveShellApp.init_path()\n/opt/anaconda3/lib/python3.7/site-packages/ipykernel_launcher.py:16: SettingWithCopyWarning: \nA value is trying to be set on a copy of a slice from a DataFrame.\nTry using .loc[row_indexer,col_indexer] = value instead\n\nSee the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy\n  app.launch_new_instance()\n/opt/anaconda3/lib/python3.7/site-packages/ipykernel_launcher.py:22: SettingWithCopyWarning: \nA value is trying to be set on a copy of a slice from a DataFrame.\nTry using .loc[row_indexer,col_indexer] = value instead\n\nSee the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy\n/opt/anaconda3/lib/python3.7/site-packages/pandas/core/indexing.py:1773: SettingWithCopyWarning: \nA value is trying to be set on a copy of a slice from a DataFrame.\nTry using .loc[row_indexer,col_indexer] = value instead\n\nSee the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy\n  self._setitem_single_column(ilocs[0], value, pi)\n\n\n\n\n\n\n  \n    \n      \n      vid_id\n      vid_channel_id\n      vid_deets\n      vid_response\n      title\n      publishedAt\n      tcomment_id\n      tcresponse\n      textDisplay\n      textOriginal\n      totalReplyCount\n      rep_comment\n      reply_id\n      comment\n      authorChannelId\n      authorDisplayName\n      com_id\n    \n  \n  \n    \n      16\n      PAEFiJD4kc8\n      NaN\n      NaN\n      NaN\n      NaN\n      2013-02-08T02:22:39Z\n      UgyjmOsdq_3dtoSMWz54AaABAg\n      {'kind': 'youtube#commentThread', 'etag': '-He...\n      maybe try putting a couple washers under one s...\n      maybe try putting a couple washers under one s...\n      0.0\n      NaN\n      NaN\n      maybe try putting a couple washers under one s...\n      UC2IE2CK5Cw_26wVv3hPbAgQ\n      David Ramsey\n      UgyjmOsdq_3dtoSMWz54AaABAg\n    \n    \n      17\n      PAEFiJD4kc8\n      NaN\n      NaN\n      NaN\n      NaN\n      2013-01-20T16:51:16Z\n      Ugy2E4vtMUBefFxODwp4AaABAg\n      {'kind': 'youtube#commentThread', 'etag': 'EdK...\n      Great video, Dave. I got my unit at Fante's al...\n      Great video, Dave. I got my unit at Fante's al...\n      1.0\n      NaN\n      NaN\n      Great video, Dave. I got my unit at Fante's al...\n      UCQM7S3ckBKVTvKNXA3ruS_A\n      drummerdaneds\n      Ugy2E4vtMUBefFxODwp4AaABAg\n    \n    \n      18\n      PAEFiJD4kc8\n      NaN\n      NaN\n      NaN\n      NaN\n      2022-01-27T17:06:46Z\n      NaN\n      {'kind': 'youtube#comment', 'etag': 'WLHRjwOb-...\n      I have this issue too- the LARGE majority of l...\n      I have this issue too- the LARGE majority of l...\n      NaN\n      {'kind': 'youtube#comment', 'etag': 'WLHRjwOb-...\n      Ugy2E4vtMUBefFxODwp4AaABAg.8GbOBBIfXDA9XhxEAHgkFy\n      I have this issue too- the LARGE majority of l...\n      UCqZPnM7t043ZEBzNboiIpKw\n      K Richardson\n      Ugy2E4vtMUBefFxODwp4AaABAg.8GbOBBIfXDA9XhxEAHgkFy\n    \n  \n\n\n\n\n\nTest to make sure comments == textDisplay\n\nlen(df[df.textDisplay.isna()])==len(df[df.comment == 'nan'])\n\nTrue\n\n\n\n\nTest unique comment Id’s are == rows in df\n\ndf.com_id.nunique() == len(df)\n\nTrue"
+  }
+]
