@@ -1,0 +1,6 @@
+website:
+  sidebar:
+    contents:
+      - index.ipynb
+      - 00_pull_n_regex_youtube_comments.ipynb
+      - 01_core.ipynb
