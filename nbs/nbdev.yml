@@ -1,0 +1,9 @@
+project:
+  output-dir: _docs
+
+website:
+  title: "ytpull"
+  site-url: "https://daveramseymusic.github.io/ytpull"
+  description: "a way to pull youtube info using the youtube api for niche marketing"
+  repo-branch: main
+  repo-url: "https://github.com/daveramseymusic/ytpull"
